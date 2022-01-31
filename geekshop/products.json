@@ -1,0 +1,17 @@
+[
+  {
+    "name": "Лампа",
+    "description": "Очень яркая",
+    "image": "img/product-11.jpg"
+  },
+  {
+    "name": "Кресло",
+    "description": "Очень удобное, наверно",
+    "image": "img/product-21.jpg"
+  },
+  {
+    "name": "Светильник",
+    "description": "Симпатичный",
+    "image": "img/product-31.jpg"
+  }
+]
