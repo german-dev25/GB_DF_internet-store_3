@@ -1,10 +1,10 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from .models import Product, ProductCategory
 
 MENU_LINKS = [
-    {'url': 'main', 'name': 'домой'},
-    {'url': 'mainapp:products', 'name': 'продукты'},
-    {'url': 'contact', 'name': 'контакты'},
+    {'url': 'main', 'active': ['main'],'name': 'домой'},
+    {'url': 'products:all', 'active': ['products:all', 'products:category'], 'name': 'продукты'},
+    {'url': 'contact', 'active': ['contact'], 'name': 'контакты'},
 ]
 
 
@@ -21,17 +21,26 @@ def index(request):
 def products(request):
     # with open('products.json', 'r', encoding='UTF-8') as file:
     #     products = json.load(file)
+    products = Product.objects.all()[:4]
     categories = ProductCategory.objects.all()
     return render(request, 'mainapp/products.html', context={
         'title': 'Продукты',
         'menu_links': MENU_LINKS,
-        'products': [],
+        'products': products,
         'categories': categories
     })
 
 
 def category(request, pk):
-    return products(request)
+    categories = ProductCategory.objects.all()
+    category = get_object_or_404(ProductCategory, pk=pk)
+    products = Product.objects.filter(category=category)
+    return render(request, 'mainapp/products.html', context={
+        'title': 'Продукты',
+        'menu_links': MENU_LINKS,
+        'products': products,
+        'categories': categories
+    })
 
 def contact(request):
     return render(request, 'mainapp/contact.html', context={
