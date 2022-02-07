@@ -17,6 +17,13 @@
         </a>
     </li>
     {% endif %}
+    {% if user.is_superuser %}
+    <li>
+        <a href="{% url 'admin:users' %}">
+            Админка
+        </a>
+    </li>
+    {% endif %}
     {% if user.is_authenticated %}
     <li>
         <a href="{% url 'basket:view' %}">
