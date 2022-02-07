@@ -1,6 +1,28 @@
+{% extends 'basketapp/base.html' %}
+{% load static %}
+
+{% block js %}
+<script src="{% static 'js/jquery-3.2.1.min.js' %}"></script>
+<script src="{% static 'js/basket_scripts.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="basket_list">
+    {% include 'basketapp/includes/inc_basket_list.html' %}
+
+</div>
+
+<button class="btn btn-round">
+    <a href="{% url 'main' %}">на главную</a>
+</button>
+{% endblock %}
+
+
 {% for item in basket %}
-    {{ item }} <a href="{% url 'basket:remove' item.id %}">Удалить из корзины</a>
-    <br/>
+{{ item }} <a href="{% url 'basket:remove' item.id %}">Удалить из корзины</a>
+<br/>
 {% endfor %}
 <br/>
-В корзине {{ basket|length }} элементов
+В корзине {{ basket|length }} позиций<br/>
+Общее количество товаров <br/>
+Товаров на сумму

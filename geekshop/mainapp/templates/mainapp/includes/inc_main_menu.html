@@ -20,8 +20,7 @@
     {% if user.is_authenticated %}
     <li>
         <a href="{% url 'basket:view' %}">
-            Корзина
-            {% if user.basket.count %} ({{ user.basket.count }}) {% endif %}
+            {% if user.basket.count %} ( {{ user.basket.count }} | {{ user.basket.total_cost }} руб. ) {% endif %}
         </a>
     </li>
     {% endif %}
