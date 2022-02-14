@@ -1,13 +1,20 @@
-from authapp.forms import ShopUserEditForm
+from authapp.forms import ShopUserEditForm, ShopUserRegisterForm
 from authapp.models import ShopUser
 from django import forms
-from mainapp.models import ProductCategory
+from mainapp.models import ProductCategory, Product
 
 
-class ShopUserAdminForm(ShopUserEditForm):
+class ShopUserEditAdminForm(ShopUserEditForm):
     class Meta:
         model = ShopUser
         fields = '__all__'
+
+
+class ShopUserCreateAdminForm(ShopUserRegisterForm):
+    class Meta:
+        model = ShopUser
+        fields = ('username', 'first_name', 'password1', 'password2', 'email', 'age', 'avatar', 'phone')
+
 
 class ProductCategoryAdminForm(forms.ModelForm):
     class Meta:
@@ -19,3 +26,5 @@ class ProductCategoryAdminForm(forms.ModelForm):
         for field_name, field in self.fields.items():
             field.widget.attrs['class'] = 'form-control'
             field.help_text = ''
+
+
