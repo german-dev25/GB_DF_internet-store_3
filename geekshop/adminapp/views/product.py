@@ -34,6 +34,33 @@ class ProductCreateView(CreateView):
         return context
 
 
+class ProductEditView(UpdateView):
+    model = Product
+    template_name = 'adminapp/product/edit.html'
+    fields = '__all__'
+    success_url = reverse_lazy('admin:products')
+
+    @method_decorator(superuser_required)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_initial(self):
+        return {
+            'category': self.get_category()
+        }
+
+    def get_success_url(self):
+        return reverse('admin:products', kwargs=self.kwargs['pk'])
+
+    def get_category(self):
+        return ProductCategory.objects.get(pk=self.kwargs['pk'])
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['category'] = self.get_category()
+        return context
+
+
 @superuser_required
 def products(request, pk):
     category = get_object_or_404(ProductCategory, pk=pk)

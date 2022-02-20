@@ -1,63 +1,73 @@
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
+from django.utils.decorators import method_decorator
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 
 from adminapp.forms import ProductCategoryAdminForm
 from mainapp.models import ProductCategory
 from adminapp.utils import superuser_required
 
 
-@superuser_required
-def category_create(request):
-    if request.method == 'POST':
-        form = ProductCategoryAdminForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return HttpResponseRedirect(reverse('admin:categories'))
-    else:
-        form = ProductCategoryAdminForm()
+class CategoryListView(ListView):
+    model = ProductCategory
+    template_name = 'adminapp/category/categories.html'
 
-    content = {'title': 'Создание категории', 'form': form}
-    return render(request, 'adminapp/category/edit.html', content)
+    @method_decorator(superuser_required)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
 
-
-@superuser_required
-def categories(request):
-    categories = ProductCategory.objects.all().order_by('id')
-
-    return render(request, 'adminapp/category/categories.html', context={
-        'title': 'Категории',
-        'objects': categories,
-    })
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Категории'
+        return context
 
 
-@superuser_required
-def category_update(request, pk):
-    category = get_object_or_404(ProductCategory, pk=pk)
-    if request.method == 'POST':
-        form = ProductCategoryAdminForm(request.POST, instance=category)
-        if form.is_valid():
-            form.save()
-            return HttpResponseRedirect(reverse('admin:categories'))
-    else:
-        form = ProductCategoryAdminForm(instance=category)
+class CategoryCreateView(CreateView):
+    model = ProductCategory
+    template_name = 'adminapp/category/edit.html'
+    form_class = ProductCategoryAdminForm
+    success_url = reverse_lazy('admin:categories')
 
-    content = {'title': 'Редактирование категории', 'form': form}
-    return render(request, 'adminapp/category/edit.html', content)
+    @method_decorator(superuser_required)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Создание категории'
+        return context
 
 
-@superuser_required
-def category_delete(request, pk):
-    title = 'Удаление категории'
+class CategoryUpdateView(UpdateView):
+    model = ProductCategory
+    template_name = 'adminapp/category/edit.html'
+    form_class = ProductCategoryAdminForm
+    success_url = reverse_lazy('admin:categories')
 
-    category = get_object_or_404(ProductCategory, pk=pk)
+    @method_decorator(superuser_required)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
 
-    if request.method == 'POST':
-        category.delete()
-        # category.is_active = False
-        # category.save()
-        return HttpResponseRedirect(reverse('admin:categories'))
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Редактирование категории'
+        return context
 
-    content = {'title': title, 'category_to_delete': category}
 
-    return render(request, 'adminapp/category/delete.html', content)
+class CategoryDeleteView(DeleteView):
+    model = ProductCategory
+    template_name = 'adminapp/category/delete.html'
+    success_url = reverse_lazy('admin:categories')
+
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        success_url = self.get_success_url()
+        self.object.is_active = False
+        self.object.save()
+        return HttpResponseRedirect(success_url)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Удаление категории'
+        return context
