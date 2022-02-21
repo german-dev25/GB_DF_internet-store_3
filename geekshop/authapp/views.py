@@ -1,9 +1,11 @@
 from django.contrib import auth
 from django.http import HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 
 from .forms import ShopUserLoginForm, ShopUserRegisterForm, ShopUserEditForm
+from .models import ShopUser
+from .utils import send_verify_mail
 
 
 def login(request):
@@ -36,7 +38,8 @@ def register(request):
     if request.method == 'POST':
         register_form = ShopUserRegisterForm(request.POST, request.FILES)
         if register_form.is_valid():
-            register_form.save()
+            user = register_form.save()
+            send_verify_mail(user)
             return HttpResponseRedirect(reverse('auth:login'))
     else:
         register_form = ShopUserRegisterForm()
@@ -56,3 +59,12 @@ def edit(request):
 
     content = {'title': 'Редактирование', 'form': edit_form}
     return render(request, 'authapp/edit.html', content)
+
+
+def verify(request, email, activation_key):
+    user = get_object_or_404(ShopUser, email=email)
+    if user.activation_key == activation_key:
+        user.is_active = True
+        user.save()
+        auth.login(request, user)
+    return render(request, 'authapp/verification.html')
