@@ -1,9 +1,12 @@
 from django.contrib import auth
 from django.http import HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
+from django.db import transaction
 
-from .forms import ShopUserLoginForm, ShopUserRegisterForm, ShopUserEditForm
+from .forms import ShopUserLoginForm, ShopUserRegisterForm, ShopUserEditForm, ShopUserProfileEditForm
+from .models import ShopUser
+from .utils import send_verify_mail
 
 
 def login(request):
@@ -17,6 +20,8 @@ def login(request):
             user = auth.authenticate(username=username, password=password)
             if user and user.is_active:
                 auth.login(request, user)
+                if 'next' in request.GET.keys():
+                    return HttpResponseRedirect(request.GET['next'])
                 return HttpResponseRedirect(reverse('main'))
     else:
         login_form = ShopUserLoginForm()
@@ -34,7 +39,8 @@ def register(request):
     if request.method == 'POST':
         register_form = ShopUserRegisterForm(request.POST, request.FILES)
         if register_form.is_valid():
-            register_form.save()
+            user = register_form.save()
+            send_verify_mail(user)
             return HttpResponseRedirect(reverse('auth:login'))
     else:
         register_form = ShopUserRegisterForm()
@@ -43,14 +49,31 @@ def register(request):
     return render(request, 'authapp/register.html', content)
 
 
+@transaction.atomic
 def edit(request):
     if request.method == 'POST':
         edit_form = ShopUserEditForm(request.POST, request.FILES)
-        if edit_form.is_valid():
+        profile_form = ShopUserProfileEditForm(request.POST, instance=request.user.profile)
+        if edit_form.is_valid() and profile_form.is_valid():
             edit_form.save()
+            profile_form.save()
             return HttpResponseRedirect(reverse('auth:login'))
     else:
         edit_form = ShopUserEditForm(instance=request.user)
+        profile_form = ShopUserProfileEditForm(instance=request.user.profile)
 
-    content = {'title': 'Редактирование', 'form': edit_form}
+    content = {
+        'title': 'Редактирование',
+        'form': edit_form,
+        'profile_form': profile_form
+    }
     return render(request, 'authapp/edit.html', content)
+
+
+def verify(request, email, activation_key):
+    user = get_object_or_404(ShopUser, email=email)
+    if user.activation_key == activation_key:
+        user.is_active = True
+        user.save()
+        auth.login(request, user)
+    return render(request, 'authapp/verification.html')

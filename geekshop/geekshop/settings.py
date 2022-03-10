@@ -9,10 +9,12 @@ https://docs.djangoproject.com/en/3.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
-
+import json
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / "subdir".
+
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -37,8 +39,13 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+
+    "social_django",
+
     "mainapp",
     "authapp",
+    "basketapp",
+    "adminapp",
 ]
 
 MIDDLEWARE = [
@@ -64,6 +71,9 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "mainapp.context_processors.menu_links",
+                'social_django.context_processors.backends',
+                'social_django.context_processors.login_redirect',
             ],
         },
     },
@@ -135,3 +145,40 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 AUTH_USER_MODEL = "authapp.ShopUser"
+
+LOGIN_URL = 'auth:login'
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'social_core.backends.github.GithubOAuth2',
+    'social_core.backends.google.GoogleOAuth2'
+]
+
+SOCIAL_AUTH_GITHUB_OAUTH2_SCOPE = [
+    'user',
+]
+
+SOCIAL_AUTH_PIPELINE = [
+    'social_core.pipeline.social_auth.social_details',
+    'social_core.pipeline.social_auth.social_uid',
+    'social_core.pipeline.social_auth.social_user',
+    'social_core.pipeline.user.get_username',
+    'social_core.pipeline.social_auth.associate_by_email',
+    'social_core.pipeline.user.create_user',
+    'social_core.pipeline.social_auth.associate_user',
+    'social_core.pipeline.social_auth.load_extra_data',
+    'social_core.pipeline.user.user_details',
+    'authapp.pipeline.get_user_location_and_bio_git',
+]
+
+with open("./credentials.json", 'r') as credentials_file:
+    credentials = json.load(credentials_file)
+    SOCIAL_AUTH_GITHUB_KEY = credentials['GITHUB_KEY']
+    SOCIAL_AUTH_GITHUB_SECRET = credentials['GITHUB_SECRET']
+
+    SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = credentials['GOOGLE_OAUTH2_KEY']
+    SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = credentials['GOOGLE_OAUTH2_SECRET']
+
+EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+EMAIL_FILE_PATH = 'tmp/emails/'
+DOMAIN_NAME = 'localhost'

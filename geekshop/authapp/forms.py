@@ -1,6 +1,9 @@
+import hashlib
+import os
+
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm, UserChangeForm
 from django import forms
-from .models import ShopUser
+from .models import ShopUser, ShopUserProfile
 
 
 class ShopUserLoginForm(AuthenticationForm):
@@ -25,6 +28,13 @@ class ShopUserRegisterForm(UserCreationForm):
             field.widget.attrs['class'] = 'form-control'
             field.help_text = ''
 
+    def save(self):
+        user = super().save()
+        user.is_active = False
+        user.activation_key = hashlib.md5(user.email.encode('utf-8') + os.urandom(64)).hexdigest()
+        user.save()
+        return user
+
 
 class ShopUserEditForm(UserChangeForm):
     class Meta:
@@ -37,3 +47,14 @@ class ShopUserEditForm(UserChangeForm):
             field.widget.attrs['class'] = 'form-control'
             if field_name == 'password':
                 field.widget = forms.HiddenInput()
+
+
+class ShopUserProfileEditForm(forms.ModelForm):
+    class Meta:
+        model = ShopUserProfile
+        fields = ('about', 'gender')
+
+    def __init__(self, *args, **kwargs):
+        super(ShopUserProfileEditForm, self).__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            field.widget.attrs['class'] = 'form-control'
