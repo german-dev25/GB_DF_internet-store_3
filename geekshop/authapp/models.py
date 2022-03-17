@@ -11,6 +11,7 @@ def get_activation_key_expitation_date():
 
 
 class ShopUser(AbstractUser):
+    objects = models.Manager()
     age = models.PositiveIntegerField(
         verbose_name = 'возраст',
         blank=True,
