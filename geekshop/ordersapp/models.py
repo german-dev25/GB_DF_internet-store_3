@@ -1,5 +1,7 @@
 from django.conf import settings
 from django.db import models
+from django.db.models.signals import pre_save, pre_delete
+from django.dispatch import receiver
 
 from basketapp.models import Basket
 from mainapp.models import Product
@@ -52,6 +54,7 @@ class Order(models.Model):
 
 
 class OrderItem(models.Model):
+    objects = models.Manager()
     order = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(verbose_name='количество', default=0)
@@ -59,3 +62,23 @@ class OrderItem(models.Model):
     @property
     def cost(self):
         return self.product.price * self.quantity
+
+
+@receiver(pre_save, sender=OrderItem)
+def product_quantity_update_on_order_item_save(
+        sender, update_fields, instance, **kwargs
+):
+    if instance.pk:
+        old_item = OrderItem.objects.get(pk=instance.pk)
+        instance.product.quantity -= instance.quantity - old_item.quantyti
+    else:
+        instance.product.quantity -= instance.quantity
+    instance.product.save()
+
+
+@receiver(pre_delete, sender=OrderItem)
+def product_quantity_update_on_order_item_delete(
+        sender, instance, **kwargs
+):
+    instance.product.quantity += instance.quantity()
+    instance.product.save()

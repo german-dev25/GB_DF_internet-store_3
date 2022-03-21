@@ -13,18 +13,18 @@ def get_activation_key_expitation_date():
 class ShopUser(AbstractUser):
     objects = models.Manager()
     age = models.PositiveIntegerField(
-        verbose_name = 'возраст',
+        verbose_name='возраст',
         blank=True,
         default=18,
     )
     avatar = models.ImageField(
-        verbose_name = 'аватар',
+        verbose_name='аватар',
         upload_to='users_avatars',
         blank=True,
     )
     phone = models.CharField(
-        verbose_name = 'телефон',
-        max_length= 10,
+        verbose_name='телефон',
+        max_length=10,
         blank=True,
     )
     cite = models.CharField(
