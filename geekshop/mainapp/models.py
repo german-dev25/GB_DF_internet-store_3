@@ -49,7 +49,5 @@ class Product(models.Model):
         default=0,
     )
 
-
-
     def __str__(self):
         return self.name
