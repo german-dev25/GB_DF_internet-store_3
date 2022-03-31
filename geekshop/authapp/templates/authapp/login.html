@@ -4,11 +4,14 @@
 
 
 {% block content %}
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
     <form class="form-horizontal" action="{% url 'auth:login' %}" method="post">
         {% csrf_token %}
         {{ form.as_p }}
         <br>
         <input class="form-control" type="submit" value="войти">
+        <a href="{% url "social:begin" "github" %}">Войти через ГитХаб</a>
+        <a href="{% url "social:begin" "google-oauth2" %}">Войти через Гугл</a>
     </form>
 
 {% endblock %}
